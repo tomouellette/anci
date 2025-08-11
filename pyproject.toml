@@ -1,6 +1,6 @@
 [project]
 name = "anci"
-version = "0.1.0"
+version = "0.1.1"
 description = "Annotated command-line interfaces in Python"
 readme = "README.md"
 authors = [
