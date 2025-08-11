@@ -91,7 +91,7 @@ from anci import Arg, cmd, main
 from anci.typing import Annotated, Gt, MaxLen
 
 @cmd("types")
-def ops_add(
+def check_my_types(
     x: Arg[list[str], "A list of strings."],
     y: Arg[Annotated[int, Gt(10)], "An integer greater than 10"],
     z: Arg[Annotated[set[float], MaxLen(2)], "A set of floats with a max of 2 elements"],
