@@ -59,12 +59,14 @@ def cmd(*names: str) -> Callable:
     This would register the `delete_temp_files` function as a command
     accessible through a CLI structure like `[program] files delete temp`.
     """
+
     def decorator(func):
         if callable(names[0]) if names else False:
             raise ValueError(
-                "A single (@command('..') or no command name (@command) " +
-                "was provided. This indicates this command is a @base " +
-                "command. Please decorate with @base('..') instead.")
+                "A single (@command('..') or no command name (@command) "
+                + "was provided. This indicates this command is a @base "
+                + "command. Please decorate with @base('..') instead."
+            )
 
             # Deprecated: Handle @command without args (top-level command)
             # This is deprecated as parent commands are decorated with base.
@@ -95,6 +97,7 @@ class MissingBaseCommandError(Exception):
     not have a @base("two") decorated function then an error will be thrown. We
     implement this error to enforce proper command-line hierarchies.
     """
+
     pass
 
 
@@ -143,6 +146,7 @@ def base(*names) -> Callable:
     ...     '''Top-level base command.'''
     ...     pass
     """
+
     def decorator(func):
         register_base_command(list(names), func)
         return func
@@ -192,13 +196,13 @@ def register_base_command(names: list[str], func: Callable) -> Callable:
     """
     current = COMMAND_TREE
     for segment in names:
-        if '_subcommands' not in current:
-            current['_subcommands'] = defaultdict(dict)
-        current = current['_subcommands'][segment]
+        if "_subcommands" not in current:
+            current["_subcommands"] = defaultdict(dict)
+        current = current["_subcommands"][segment]
 
-    current['_base_func'] = func
-    current['_name'] = func.__name__
-    current['_is_base'] = True
+    current["_base_func"] = func
+    current["_name"] = func.__name__
+    current["_is_base"] = True
 
     def decorator(func):
         if callable(names[0]) if names else False:
@@ -250,11 +254,11 @@ def register_command(names: list[str], func: Callable) -> None:
 
     current = COMMAND_TREE
     for segment in names:
-        if '_subcommands' not in current:
-            current['_subcommands'] = defaultdict(dict)
-        current = current['_subcommands'][segment]
-    current['_func'] = func
-    current['_name'] = func.__name__
+        if "_subcommands" not in current:
+            current["_subcommands"] = defaultdict(dict)
+        current = current["_subcommands"][segment]
+    current["_func"] = func
+    current["_name"] = func.__name__
 
 
 def validate_parent_commands(names: list[str]) -> None:
@@ -284,21 +288,21 @@ def validate_parent_commands(names: list[str]) -> None:
 
         current = COMMAND_TREE
         for segment in parent_path:
-            if '_subcommands' not in current:
+            if "_subcommands" not in current:
                 raise MissingBaseCommandError(
-                    f"Missing base command for {' -> '.join(parent_path)}. " +
-                    f"You must define a @base{tuple(parent_path)} command " +
-                    "before defining nested commands."
+                    f"Missing base command for {' -> '.join(parent_path)}. "
+                    + f"You must define a @base{tuple(parent_path)} command "
+                    + "before defining nested commands."
                 )
 
-            current = current['_subcommands'][segment]
+            current = current["_subcommands"][segment]
 
         # Note: Check if this parent path has either a base or regular command
-        if '_base_func' not in current and '_func' not in current:
+        if "_base_func" not in current and "_func" not in current:
             raise MissingBaseCommandError(
-                f"Missing base command for {' -> '.join(parent_path)}. " +
-                f"You must define a @base{tuple(parent_path)} command " +
-                "before defining nested commands."
+                f"Missing base command for {' -> '.join(parent_path)}. "
+                + f"You must define a @base{tuple(parent_path)} command "
+                + "before defining nested commands."
             )
 
 
@@ -343,7 +347,7 @@ def register_recursive(
     subparsers: argparse._SubParsersAction,
     command_tree: dict,
     names: list[str] = [],
-    formatter_class=None
+    formatter_class=None,
 ) -> None:
     """Recursively register all commands and subcommands with subparsers.
 
@@ -370,44 +374,42 @@ def register_recursive(
     add_subparser : Function used to add arguments for each command.
     """
     for name, subtree in command_tree.items():
-        if name == '_subcommands':
+        if name == "_subcommands":
             continue
 
         current_names = names + [name]
 
         # Note: Check if this node has a regular function/command
-        if '_func' in subtree:
-            func = subtree['_func']
-            parser_kwargs = {'description': func.__doc__}
+        if "_func" in subtree:
+            func = subtree["_func"]
+            parser_kwargs = {"description": func.__doc__}
             if formatter_class:
-                parser_kwargs['formatter_class'] = formatter_class
+                parser_kwargs["formatter_class"] = formatter_class
             sub = subparsers.add_parser(name, **parser_kwargs)
-            sub.set_defaults(func=func,
-                             command_path=current_names,
-                             is_base=False)
+            sub.set_defaults(func=func, command_path=current_names, is_base=False)
             add_subparser(sub, func)
             sub.set_defaults(func=func, command_path=current_names)
 
             # Note: If this command also has subcommands, add them
-            if '_subcommands' in subtree:
+            if "_subcommands" in subtree:
                 sub_subparsers = sub.add_subparsers(
                     dest=f"subcmd_{'_'.join(current_names)}",
                     metavar="<subcommand>",
-                    help="Subcommands"
+                    help="Subcommands",
                 )
                 register_recursive(
                     sub_subparsers,
-                    subtree['_subcommands'],
+                    subtree["_subcommands"],
                     current_names,
-                    formatter_class
+                    formatter_class,
                 )
 
         # Note; Check if this node has a base function
-        elif '_base_func' in subtree:
-            func = subtree['_base_func']
-            parser_kwargs = {'description': func.__doc__}
+        elif "_base_func" in subtree:
+            func = subtree["_base_func"]
+            parser_kwargs = {"description": func.__doc__}
             if formatter_class:
-                parser_kwargs['formatter_class'] = formatter_class
+                parser_kwargs["formatter_class"] = formatter_class
             sub = subparsers.add_parser(name, **parser_kwargs)
 
             # Note: Base commands don't take arguments, they just show help
@@ -415,48 +417,44 @@ def register_recursive(
                 def handler():
                     subparser.print_help()
                     sys.exit(0)
+
                 return handler
 
-            sub.set_defaults(func=base_command_handler(
-                sub), command_path=current_names, is_base=True)
+            sub.set_defaults(
+                func=base_command_handler(sub), command_path=current_names, is_base=True
+            )
 
             # Note: Base commands must have subcommands
-            if '_subcommands' in subtree:
+            if "_subcommands" in subtree:
                 sub_subparsers = sub.add_subparsers(
                     dest=f"subcmd_{'_'.join(current_names)}",
                     metavar="<subcommand>",
-                    help="Subcommands"
+                    help="Subcommands",
                 )
                 register_recursive(
                     sub_subparsers,
-                    subtree['_subcommands'],
+                    subtree["_subcommands"],
                     current_names,
-                    formatter_class
+                    formatter_class,
                 )
 
         # Note: If this is just a command group, create parser for subcommands
-        elif '_subcommands' in subtree:
-            parser_kwargs = {'help': f"Commands under {name}"}
+        elif "_subcommands" in subtree:
+            parser_kwargs = {"help": f"Commands under {name}"}
             if formatter_class:
-                parser_kwargs['formatter_class'] = formatter_class
+                parser_kwargs["formatter_class"] = formatter_class
             sub = subparsers.add_parser(name, **parser_kwargs)
             sub_subparsers = sub.add_subparsers(
                 dest=f"subcmd_{'_'.join(current_names)}",
                 metavar="<subcommand>",
-                help="Subcommands"
+                help="Subcommands",
             )
             register_recursive(
-                sub_subparsers,
-                subtree['_subcommands'],
-                current_names,
-                formatter_class
+                sub_subparsers, subtree["_subcommands"], current_names, formatter_class
             )
 
 
-def register(
-    subparsers: argparse._SubParsersAction,
-    formatter_class=None
-) -> None:
+def register(subparsers: argparse._SubParsersAction, formatter_class=None) -> None:
     """Register all commands with the argument parser.
 
     This function handles both top-level commands and commands nested under
@@ -472,40 +470,38 @@ def register(
 
     def register_command(subparsers_obj, name, details, command_path):
         """Helper to register a single command."""
-        if '_func' in details:
+        if "_func" in details:
             # Note: Regular command with function
-            func = details['_func']
+            func = details["_func"]
             help_text = func.__doc__ or f"Execute {name} command"
 
-            parser_kwargs = {'help': help_text}
+            parser_kwargs = {"help": help_text, "description": func.__doc__}
             if formatter_class:
-                parser_kwargs['formatter_class'] = formatter_class
+                parser_kwargs["formatter_class"] = formatter_class
 
             sub = subparsers_obj.add_parser(name, **parser_kwargs)
             add_subparser(sub, func)
             sub.set_defaults(func=func, command_path=command_path + [name])
 
             # Note: Handle nested subcommands
-            if '_subcommands' in details:
+            if "_subcommands" in details:
                 nested_subparsers = sub.add_subparsers(
                     dest=f"subcmd_{'_'.join(command_path + [name])}",
                     metavar="<subcommand>",
-                    help="Available subcommands"
+                    help="Available subcommands",
                 )
                 register_commands_from_dict(
-                    nested_subparsers,
-                    details['_subcommands'],
-                    command_path + [name]
+                    nested_subparsers, details["_subcommands"], command_path + [name]
                 )
 
-        elif '_base_func' in details:
+        elif "_base_func" in details:
             # Note: Base command (shows help when called without subcommands)
-            func = details['_base_func']
+            func = details["_base_func"]
             help_text = func.__doc__ or f"Base command for {name}"
 
-            parser_kwargs = {'help': help_text}
+            parser_kwargs = {"help": help_text}
             if formatter_class:
-                parser_kwargs['formatter_class'] = formatter_class
+                parser_kwargs["formatter_class"] = formatter_class
 
             sub = subparsers_obj.add_parser(name, **parser_kwargs)
 
@@ -514,38 +510,38 @@ def register(
                 def handler():
                     subparser.print_help()
                     sys.exit(0)
+
                 return handler
 
             sub.set_defaults(
                 func=base_command_handler(sub),
                 command_path=command_path + [name],
-                is_base=True
+                is_base=True,
             )
 
             # Note: Handle nested subcommands for base commands
-            if '_subcommands' in details:
+            if "_subcommands" in details:
                 nested_subparsers = sub.add_subparsers(
                     dest=f"subcmd_{'_'.join(command_path + [name])}",
                     metavar="<subcommand>",
-                    help="Available subcommands"
+                    help="Available subcommands",
                 )
                 register_commands_from_dict(
-                    nested_subparsers,
-                    details['_subcommands'],
-                    command_path + [name]
+                    nested_subparsers, details["_subcommands"], command_path + [name]
                 )
 
     def register_commands_from_dict(subparsers_obj, commands_dict, command_path):
         """Register all commands from a dictionary."""
         for name, details in commands_dict.items():
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
             register_command(subparsers_obj, name, details, command_path)
 
     # Note: Check if we have any top-level commands (not starting with '_')
     top_level_commands = {
-        name: details for name, details in COMMAND_TREE.items()
-        if not name.startswith('_')
+        name: details
+        for name, details in COMMAND_TREE.items()
+        if not name.startswith("_")
     }
 
     if top_level_commands:
@@ -553,22 +549,15 @@ def register(
         register_commands_from_dict(subparsers, top_level_commands, [])
 
     # Note: Handle commands nested under '_subcommands'
-    if '_subcommands' in COMMAND_TREE:
+    if "_subcommands" in COMMAND_TREE:
         if not top_level_commands:
             # Note: All commands are under _subcommands, register at top level
-            register_commands_from_dict(
-                subparsers,
-                COMMAND_TREE['_subcommands'],
-                []
-            )
+            register_commands_from_dict(subparsers, COMMAND_TREE["_subcommands"], [])
         else:
             # Note: We have both top-level and nested commands.Register nested
             # ones using the existing recursive function
             register_recursive(
-                subparsers,
-                COMMAND_TREE['_subcommands'],
-                [],
-                formatter_class
+                subparsers, COMMAND_TREE["_subcommands"], [], formatter_class
             )
 
 
@@ -589,7 +578,7 @@ def find_selected_function(args: argparse.Namespace) -> Callable | None:
     Callable or None
         The selected command function if found, otherwise `None`.
     """
-    if hasattr(args, 'func'):
+    if hasattr(args, "func"):
         return args.func
 
     return None
@@ -621,7 +610,7 @@ def runner(args: argparse.Namespace, parser: argparse.ArgumentParser):
     SystemExit
         If no command is selected or if a base command is invoked.
     """
-    if not hasattr(args, 'command') or args.command is None:
+    if not hasattr(args, "command") or args.command is None:
         parser.print_help()
         sys.exit(0)
 
@@ -630,15 +619,14 @@ def runner(args: argparse.Namespace, parser: argparse.ArgumentParser):
         parser.print_help()
         sys.exit(1)
 
-    if hasattr(args, 'is_base') and args.is_base:
+    if hasattr(args, "is_base") and args.is_base:
         func()
         return
 
     func_args = vars(args).copy()
 
-    keys_to_remove = ['func', 'command', 'command_path', 'is_base']
-    keys_to_remove.extend(
-        [k for k in func_args.keys() if k.startswith('subcmd_')])
+    keys_to_remove = ["func", "command", "command_path", "is_base"]
+    keys_to_remove.extend([k for k in func_args.keys() if k.startswith("subcmd_")])
 
     for key in keys_to_remove:
         func_args.pop(key, None)
