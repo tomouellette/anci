@@ -470,6 +470,7 @@ def register(subparsers: argparse._SubParsersAction, formatter_class=None) -> No
 
     def register_command(subparsers_obj, name, details, command_path):
         """Helper to register a single command."""
+
         if "_func" in details:
             # Note: Regular command with function
             func = details["_func"]
@@ -481,7 +482,9 @@ def register(subparsers: argparse._SubParsersAction, formatter_class=None) -> No
 
             sub = subparsers_obj.add_parser(name, **parser_kwargs)
             add_subparser(sub, func)
-            sub.set_defaults(func=func, command_path=command_path + [name])
+            sub.set_defaults(
+                func=func, command_path=command_path + [name], is_base=False
+            )
 
             # Note: Handle nested subcommands
             if "_subcommands" in details:
