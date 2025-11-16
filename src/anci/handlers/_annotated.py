@@ -126,9 +126,8 @@ class InequalityHandler(AnnotatedTypeHandler):
                     v_cast = element_type(v)
                     if not self.op_func(v_cast, threshold):
                         raise argparse.ArgumentTypeError(
-                            f"Each element of {name} must be {self.op_symbol} {
-                                threshold
-                            }, got {v}"
+                            f"Each element of {name} must be {self.op_symbol} "
+                            f"{threshold}, got {v}"
                         )
                     casted.append(v_cast)
                 return origin(casted) if origin is not list else casted
@@ -353,21 +352,18 @@ class LenHandler:
             def validator(value):
                 if hasattr(metadata, "length") and len(value) != metadata.length:
                     raise argparse.ArgumentTypeError(
-                        f"Argument '{name}' must have exactly {
-                            metadata.length
-                        } characters"
+                        f"Argument '{name}' must have exactly "
+                        f"{metadata.length} characters"
                     )
                 if hasattr(metadata, "min_length") and len(value) < metadata.min_length:
                     raise argparse.ArgumentTypeError(
-                        f"Argument '{name}' must have at least {
-                            metadata.min_length
-                        } characters"
+                        f"Argument '{name}' must have at least "
+                        f"{metadata.min_length} characters"
                     )
                 if hasattr(metadata, "max_length") and len(value) > metadata.max_length:
                     raise argparse.ArgumentTypeError(
-                        f"Argument '{name}' must have at most {
-                            metadata.max_length
-                        } characters"
+                        f"Argument '{name}' must have at most "
+                        f"{metadata.max_length} characters"
                     )
                 return value
 
