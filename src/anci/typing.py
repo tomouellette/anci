@@ -28,5 +28,5 @@ __all__ = [
     "Interval",
     "MaxLen",
     "MinLen",
-    "Len"
+    "Len",
 ]

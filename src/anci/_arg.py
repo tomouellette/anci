@@ -24,10 +24,7 @@ class Arg:
     >>> Arg[int, "Help text here"]    # with help
     """
 
-    def __class_getitem__(
-        cls,
-        params: tuple[type, str] | type | AnnotatedType
-    ):
+    def __class_getitem__(cls, params: tuple[type, str] | type | AnnotatedType):
         # Note: This is the entry point for performing the initial checks on
         # function type annotations before building the _registry.COMMAND_TREE.
         # Any new arguments types need to be added here if necessary. There is
@@ -39,18 +36,22 @@ class Arg:
             type_hint, help_text = params, ""
         else:
             raise TypeError(
-                "Arg[...] takes 1 parameter (type) or 2 parameters "
-                "(type and help text)")
+                "Arg[...] takes 1 parameter (type) or 2 parameters (type and help text)"
+            )
 
         if not isinstance(help_text, str):
             raise TypeError("Help text must be a string.")
 
-        return type("ArgType", (), {
-            "__type_hint__": type_hint,
-            "__help_text__": help_text,
-            "__origin__": cls,
-            "__args__": (type_hint, help_text),
-        })
+        return type(
+            "ArgType",
+            (),
+            {
+                "__type_hint__": type_hint,
+                "__help_text__": help_text,
+                "__origin__": cls,
+                "__args__": (type_hint, help_text),
+            },
+        )
 
 
 def is_anci_arg(annotation: Any) -> bool:

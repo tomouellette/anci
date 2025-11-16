@@ -27,10 +27,12 @@ def register_type(*types):
     callable
         A decorator that registers the class in the `TYPE_HANDLERS` registry.
     """
+
     def decorator(cls):
         for t in types:
             TYPE_HANDLERS[t] = cls
         return cls
+
     return decorator
 
 
@@ -69,6 +71,7 @@ class BaseTypeHandler(ABC):
 @register_type(float)
 class FloatHandler(BaseTypeHandler):
     """Handler for `float` command-line arguments."""
+
     cast = staticmethod(float)
 
     def build(self, name: str, annotated_type: float) -> dict[str, Any]:
@@ -78,6 +81,7 @@ class FloatHandler(BaseTypeHandler):
 @register_type(int)
 class IntHandler(BaseTypeHandler):
     """Handler for `int` command-line arguments."""
+
     cast = staticmethod(int)
 
     def build(self, name: str, annotated_type: int) -> dict[str, Any]:
@@ -87,6 +91,7 @@ class IntHandler(BaseTypeHandler):
 @register_type(str)
 class StrHandler(BaseTypeHandler):
     """Handler for `str` command-line arguments."""
+
     cast = staticmethod(str)
 
     def build(self, name: str, annotated_type: str) -> dict[str, Any]:
@@ -105,9 +110,9 @@ class BoolHandler(BaseTypeHandler):
         def str_to_bool(v):
             if isinstance(v, bool):
                 return v
-            if v.lower() in ('true', 't', 'yes', '1'):
+            if v.lower() in ("true", "t", "yes", "1"):
                 return True
-            elif v.lower() in ('false', 'f', 'no', '0'):
+            elif v.lower() in ("false", "f", "no", "0"):
                 return False
             raise argparse.ArgumentTypeError(f"invalid boolean value: {v}.")
 
@@ -131,6 +136,7 @@ class BytesHandler(BaseTypeHandler):
 @register_type(Path)
 class PathHandler(BaseTypeHandler):
     """Handler for `pathlib.Path` command-line arguments."""
+
     cast = staticmethod(Path)
 
     def build(self, name: str, annotated_type: Path) -> dict[str, Any]:
@@ -145,6 +151,7 @@ class BaseContainerHandler(BaseTypeHandler):
     `set[float]`. It ensures the container is homogeneous, the element type
     is registered, and returns the appropriate `argparse` settings.
     """
+
     container_type = list
 
     def build(self, name: str, annotated_type: Container) -> dict[str, Any]:
@@ -173,22 +180,20 @@ class BaseContainerHandler(BaseTypeHandler):
 
         if not args:
             raise TypeError(
-                f"{self.container_type.__name__} argument '{
-                    name}' must specify "
+                f"{self.container_type.__name__} argument '{name}' must specify "
                 f"an element type (e.g., {self.container_type.__name__}[int])."
             )
 
         if get_origin(annotated_type) is not self.container_type:
             raise TypeError(
-                f"Container type for {name} must be "
-                f"{self.container_type.__name__}.")
+                f"Container type for {name} must be {self.container_type.__name__}."
+            )
 
         element_type = args[0]
         for e in args:
             if e is not element_type and e is not Ellipsis:
                 raise TypeError(
-                    f"{self.container_type.__name__} argument '{
-                        name}' must have "
+                    f"{self.container_type.__name__} argument '{name}' must have "
                     f"homogeneous elements: {annotated_type}"
                 )
 
@@ -204,7 +209,7 @@ class BaseContainerHandler(BaseTypeHandler):
             "nargs": "+",
             "cast": element_handler.cast,
             "container_type": self.container_type,
-            "action": ContainerCastAction
+            "action": ContainerCastAction,
         }
 
 
@@ -215,6 +220,7 @@ class ListHandler(BaseContainerHandler):
     Enforces that the argument is a typed `list` with a registered
     element type. Supports homogeneous lists only.
     """
+
     container_type = list
 
 
@@ -226,6 +232,7 @@ class TupleHandler(BaseContainerHandler):
     element type. Supports homogeneous tuples or ellipsis notation for
     variable length tuples.
     """
+
     container_type = tuple
 
 
@@ -236,4 +243,5 @@ class SetHandler(BaseContainerHandler):
     Enforces that the argument is a typed `set` with a registered
     element type. Supports homogeneous sets only.
     """
+
     container_type = set

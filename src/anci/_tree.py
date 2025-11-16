@@ -337,8 +337,7 @@ def add_subparser(subparser: argparse.ArgumentParser, func: Callable) -> None:
             kwargs["default"] = param.default
             if help_text:
                 end = "." if help_text.endswith(".") else ""
-                kwargs["help"] = f"{help_text.rstrip(
-                    '.')} (default: %(default)s){end}"
+                kwargs["help"] = f"{help_text.rstrip('.')} (default: %(default)s){end}"
 
         subparser.add_argument(f"--{name}", **kwargs)
 

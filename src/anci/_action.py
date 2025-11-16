@@ -142,13 +142,7 @@ class ConstrainedContainerAction(argparse.Action):
     """
 
     def __init__(
-        self,
-        container_type,
-        cast,
-        validate=None,
-        min_len=None,
-        max_len=None,
-        **kwargs
+        self, container_type, cast, validate=None, min_len=None, max_len=None, **kwargs
     ):
         self.container_type = container_type
         self.cast = cast
@@ -160,13 +154,13 @@ class ConstrainedContainerAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if self.min_len is not None and len(values) < self.min_len:
             raise argparse.ArgumentError(
-                self,
-                f"Expected at least {self.min_len} elements, got {len(values)}")
+                self, f"Expected at least {self.min_len} elements, got {len(values)}"
+            )
 
         if self.max_len is not None and len(values) > self.max_len:
             raise argparse.ArgumentError(
-                self,
-                f"Expected at most {self.max_len} elements, got {len(values)}")
+                self, f"Expected at most {self.max_len} elements, got {len(values)}"
+            )
 
         casted = [self.cast(v) for v in values]
         if self.validate:

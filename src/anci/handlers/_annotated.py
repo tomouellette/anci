@@ -28,10 +28,12 @@ def register_annotated(*meta_types):
     callable
         A decorator that registers the handler class.
     """
+
     def wrapper(cls):
         for m in meta_types:
             ANNOTATED_HANDLERS[m] = cls
         return cls
+
     return wrapper
 
 
@@ -41,12 +43,10 @@ class AnnotatedTypeHandler(ABC):
     Subclasses must implement the `build` method, which maps an annotated
     type and its metadata to an `argparse` argument configuration dictionary.
     """
+
     @abstractmethod
     def build(
-        self,
-        name: str,
-        annotated_type: Annotated[type, ...],
-        metadata: Any
+        self, name: str, annotated_type: Annotated[type, ...], metadata: Any
     ) -> dict[str, Any]:
         """Build an `argparse` argument config from annotated type metadata.
 
@@ -89,7 +89,7 @@ class InequalityHandler(AnnotatedTypeHandler):
         self,
         name: str,
         annotated_type: Container[int] | Container[float] | int | float,
-        metadata: Gt | Ge | Lt | Le
+        metadata: Gt | Ge | Lt | Le,
     ) -> dict[str, Any]:
         """Create an argparse configuration enforcing an inequality constraint.
 
@@ -126,8 +126,9 @@ class InequalityHandler(AnnotatedTypeHandler):
                     v_cast = element_type(v)
                     if not self.op_func(v_cast, threshold):
                         raise argparse.ArgumentTypeError(
-                            f"Each element of {name} must be {
-                                self.op_symbol} {threshold}, got {v}"
+                            f"Each element of {name} must be {self.op_symbol} {
+                                threshold
+                            }, got {v}"
                         )
                     casted.append(v_cast)
                 return origin(casted) if origin is not list else casted
@@ -162,6 +163,7 @@ class InequalityHandler(AnnotatedTypeHandler):
 @register_annotated(Gt)
 class GreaterThanHandler(InequalityHandler):
     """Handler for `Gt` metadata."""
+
     metadata_attr = "gt"
     op_func = staticmethod(operator.gt)
     op_symbol = ">"
@@ -170,6 +172,7 @@ class GreaterThanHandler(InequalityHandler):
 @register_annotated(Ge)
 class GreaterEqualHandler(InequalityHandler):
     """Handler for `Ge` metadata."""
+
     metadata_attr = "ge"
     op_func = staticmethod(operator.ge)
     op_symbol = ">="
@@ -178,6 +181,7 @@ class GreaterEqualHandler(InequalityHandler):
 @register_annotated(Lt)
 class LessThanHandler(InequalityHandler):
     """Handler for `Lt` metadata."""
+
     metadata_attr = "lt"
     op_func = staticmethod(operator.lt)
     op_symbol = "<"
@@ -186,6 +190,7 @@ class LessThanHandler(InequalityHandler):
 @register_annotated(Le)
 class LessEqualHandler(InequalityHandler):
     """Handler for `Le` metadata."""
+
     metadata_attr = "le"
     op_func = staticmethod(operator.le)
     op_symbol = "<="
@@ -203,7 +208,7 @@ class IntervalHandler(AnnotatedTypeHandler):
         self,
         name: str,
         annotated_type: Container[int] | Container[float] | int | float,
-        metadata: Interval
+        metadata: Interval,
     ) -> dict[str, Any]:
         """Build an argparse config for a numeric interval constraint.
 
@@ -227,16 +232,14 @@ class IntervalHandler(AnnotatedTypeHandler):
         le = getattr(metadata, "le", None)
 
         if gt is not None and ge is not None:
-            raise TypeError(
-                "Interval cannot have both 'gt' and 'ge' specified.")
+            raise TypeError("Interval cannot have both 'gt' and 'ge' specified.")
         if lt is not None and le is not None:
-            raise TypeError(
-                "Interval cannot have both 'lt' and 'le' specified.")
+            raise TypeError("Interval cannot have both 'lt' and 'le' specified.")
 
         lower = gt if gt is not None else ge
-        lower_inclusive = (ge is not None or gt is None)
+        lower_inclusive = ge is not None or gt is None
         upper = lt if lt is not None else le
-        upper_inclusive = (le is not None or lt is None)
+        upper_inclusive = le is not None or lt is None
 
         origin = get_origin(annotated_type)
 
@@ -298,19 +301,15 @@ class IntervalHandler(AnnotatedTypeHandler):
 
             if lower is not None:
                 if lower_inclusive and value < lower:
-                    raise argparse.ArgumentTypeError(
-                        f"Value must be ≥ {lower}")
+                    raise argparse.ArgumentTypeError(f"Value must be ≥ {lower}")
                 elif not lower_inclusive and value <= lower:
-                    raise argparse.ArgumentTypeError(
-                        f"Value must be > {lower}")
+                    raise argparse.ArgumentTypeError(f"Value must be > {lower}")
 
             if upper is not None:
                 if upper_inclusive and value > upper:
-                    raise argparse.ArgumentTypeError(
-                        f"Value must be ≤ {upper}")
+                    raise argparse.ArgumentTypeError(f"Value must be ≤ {upper}")
                 elif not upper_inclusive and value >= upper:
-                    raise argparse.ArgumentTypeError(
-                        f"Value must be < {upper}")
+                    raise argparse.ArgumentTypeError(f"Value must be < {upper}")
 
             return value
 
@@ -332,7 +331,7 @@ class LenHandler:
         self,
         name: str,
         annotated_type: Container[Any] | str,
-        metadata: MaxLen | MinLen | Len
+        metadata: MaxLen | MinLen | Len,
     ) -> dict[str, Any]:
         origin = get_origin(annotated_type)
         args = get_args(annotated_type)
@@ -350,21 +349,25 @@ class LenHandler:
             }
 
         if annotated_type in (str, bytes):
+
             def validator(value):
                 if hasattr(metadata, "length") and len(value) != metadata.length:
                     raise argparse.ArgumentTypeError(
                         f"Argument '{name}' must have exactly {
-                            metadata.length} characters"
+                            metadata.length
+                        } characters"
                     )
                 if hasattr(metadata, "min_length") and len(value) < metadata.min_length:
                     raise argparse.ArgumentTypeError(
                         f"Argument '{name}' must have at least {
-                            metadata.min_length} characters"
+                            metadata.min_length
+                        } characters"
                     )
                 if hasattr(metadata, "max_length") and len(value) > metadata.max_length:
                     raise argparse.ArgumentTypeError(
                         f"Argument '{name}' must have at most {
-                            metadata.max_length} characters"
+                            metadata.max_length
+                        } characters"
                     )
                 return value
 

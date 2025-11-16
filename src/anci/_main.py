@@ -13,13 +13,13 @@ def main(
     description: str | None = None,
     epilog: str | None = None,
     formatter_class: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
-    prefix_chars: str = '-',
+    prefix_chars: str = "-",
     fromfile_prefix_chars: str | None = None,
     argument_default: Any = None,
-    conflict_handler: str = 'error',
+    conflict_handler: str = "error",
     add_help: bool = True,
     allow_abbrev: bool = True,
-    exit_on_error: bool = True
+    exit_on_error: bool = True,
 ) -> Any:
     """Initializes and runs a command-line interface using argparse.
 
@@ -88,14 +88,11 @@ def main(
         conflict_handler=conflict_handler,
         add_help=add_help,
         allow_abbrev=allow_abbrev,
-        exit_on_error=exit_on_error
+        exit_on_error=exit_on_error,
     )
 
     subparsers = parser.add_subparsers(
-        dest="command",
-        metavar="<command>",
-        help="Available commands",
-        required=True
+        dest="command", metavar="<command>", help="Available commands", required=True
     )
 
     register(subparsers, formatter_class=formatter_class)
